@@ -94,11 +94,11 @@ public class UserServiceTest {
         Assertions.assertNotNull(userList);
     }
 
-    // 432, 409, 413
+    // 408, 400, 398
     @Test
     void searchUsersByTagsByMemory() {
         List<String> tags = Arrays.asList("Java", "Python");
-        List<User> userList = userService.searchUsersByTagsByMemory(new Page<>(1, 2), tags);
+        List<User> userList = userService.searchUsersByTagsByMemory(new Page<>(1, 10), tags);
         for (User user : userList) {
             System.out.println(user);
         }

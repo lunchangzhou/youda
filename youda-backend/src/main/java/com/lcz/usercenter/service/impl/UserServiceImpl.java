@@ -270,27 +270,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (CollectionUtils.isEmpty(tags)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
-        while (userList.size() < userPage.getSize()){
-            // 2.查询所有用户
-            List<User> userListTemp = userMapper.selectPage(userPage, new QueryWrapper<>()).getRecords();
-            // 3.内存中根据标签查询用户,再进行脱敏并返回用户列表
-            userListTemp = userListTemp.stream().filter(user -> {
-                String tagStr = user.getTags();
-                if (StringUtils.isEmpty(tagStr)) {
+        // 2.查询所有用户
+        List<User> userListTemp = userMapper.selectPage(userPage, new QueryWrapper<>()).getRecords();
+        // 3.内存中根据标签查询用户,再进行脱敏并返回用户列表
+        userListTemp = userListTemp.stream().filter(user -> {
+            String tagStr = user.getTags();
+            if (StringUtils.isEmpty(tagStr)) {
+                return false;
+            }
+            Set<String> tagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>() {
+            }.getType());
+            for (String tag : tags) {
+                if (!tagNameSet.contains(tag)) {
                     return false;
                 }
-                Set<String> tagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>() {
-                }.getType());
-                for (String tag : tags) {
-                    if (!tagNameSet.contains(tag)) {
-                        return false;
-                    }
-                }
-                return true;
-            }).map(this::getSafetyUser).collect(Collectors.toList());
-            userList.addAll(userListTemp);
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
+        userList.addAll(userListTemp);
+        if (userList.size() > (int) userPage.getSize()){
+            userList = userList.subList(0, (int) userPage.getSize());
         }
-        userList = userList.subList(0, (int) userPage.getSize());
         // stop 计时
         stopWatch.stop();
         log.info("基于内存根据标签查询用户：用户列表条数（{}），耗时（{}）", userList.size(), stopWatch.getTotalTimeMillis());
