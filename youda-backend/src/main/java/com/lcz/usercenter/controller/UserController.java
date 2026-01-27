@@ -134,4 +134,15 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    @GetMapping("recommendUsers")
+    public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize, HttpServletRequest request) {
+        // 1.参数校验
+        if (pageNum <= 0 || pageSize <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "页数或页大小要求大于 0");
+        }
+        // 2.获取推荐用户
+        Page<User> result = userService.recommendUsers(pageNum, pageSize, request);
+        return ResultUtils.success(result);
+    }
+
 }

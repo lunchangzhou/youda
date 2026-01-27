@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lcz.usercenter.common.ErrorCode;
+import com.lcz.usercenter.common.ResultUtils;
 import com.lcz.usercenter.exception.BusinessException;
 import com.lcz.usercenter.model.domain.User;
 import com.lcz.usercenter.model.request.UserUpdateRequest;
@@ -14,6 +15,8 @@ import com.lcz.usercenter.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -24,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,6 +46,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private Gson gson;
 
@@ -318,6 +324,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.NO_AUTH, "没有管理员权限");
         }
         return userMapper.updateById(usernew);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Page<User> recommendUsers(long pageNum, long pageSize, HttpServletRequest request) {
+        // 1.参数校验
+        if (pageNum <= 0 || pageSize <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "页数和页大小需大于 0");
+        }
+        // 2.鉴权
+        User loginUser = this.getLoginUser(request);
+        if (loginUser == null){
+            throw new BusinessException(ErrorCode.NO_AUTH, "未登录");
+        }
+        String redisKey = String.format("youda:user:recommendUsers:%s", loginUser.getId());
+        // 3.核心业务逻辑
+        // 如果有缓存，直接读取
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+        if (userPage != null){
+            return userPage;
+        }
+        // 没有缓存，查数据库
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        userPage = userMapper.selectPage(new Page<>(pageNum, pageSize), queryWrapper);
+        // 写缓存，10s 过期
+        try {
+            valueOperations.set(redisKey, userPage,10000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("推荐用户写缓存失败...");
+        }
+        return userPage;
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        return (User) request.getSession().getAttribute(USER_LOGIN_STATE);
     }
 }
 

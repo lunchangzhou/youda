@@ -80,4 +80,19 @@ public interface UserService extends IService<User> {
      * @return 更新的用户 ID
      */
     int updateUser(UserUpdateRequest userUpdateRequest, User loginUser);
+
+    /**
+     * 推荐用户
+     * @param pageNum 页数
+     * @param pageSize 页大小
+     * @return 推荐的用户列表
+     */
+    Page<User> recommendUsers( long pageNum, long pageSize, HttpServletRequest request);
+
+    /**
+     * 获取当前登录用户
+     * @param request 请求对象
+     * @return 当前登录用户
+     */
+    User getLoginUser(HttpServletRequest request);
 }
