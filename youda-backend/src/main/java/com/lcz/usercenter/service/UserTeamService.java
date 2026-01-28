@@ -1,7 +1,7 @@
 package com.lcz.usercenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import generator.domain.UserTeam;
+import com.lcz.usercenter.model.domain.UserTeam;
 
 /**
 * @author l1853

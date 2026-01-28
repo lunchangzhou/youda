@@ -1,7 +1,7 @@
 package com.lcz.usercenter.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import generator.domain.Team;
+import com.lcz.usercenter.model.domain.Team;
 
 /**
 * @author l1853
