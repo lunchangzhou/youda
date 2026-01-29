@@ -3,6 +3,7 @@ package com.lcz.usercenter.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lcz.usercenter.model.domain.Team;
 import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
+import com.lcz.usercenter.model.dto.request.UpdateTeamRequest;
 import com.lcz.usercenter.model.dto.vo.TeamUserVo;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,4 +29,6 @@ public interface TeamService extends IService<Team> {
      * @return 队伍及关联用户信息
      */
     List<TeamUserVo> listTeams(ListTeamsRequest listTeamsRequest, HttpServletRequest request);
+
+    Boolean updateTeam(UpdateTeamRequest updateTeamRequest, HttpServletRequest request);
 }

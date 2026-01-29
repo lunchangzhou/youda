@@ -11,6 +11,7 @@ import com.lcz.usercenter.model.domain.User;
 import com.lcz.usercenter.model.domain.UserTeam;
 import com.lcz.usercenter.model.dto.enums.TeamStatusEnum;
 import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
+import com.lcz.usercenter.model.dto.request.UpdateTeamRequest;
 import com.lcz.usercenter.model.dto.vo.TeamUserVo;
 import com.lcz.usercenter.model.dto.vo.UserVo;
 import com.lcz.usercenter.service.TeamService;
@@ -175,6 +176,41 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             teamUserVos.add(teamUserVo);
         }
         return teamUserVos;
+    }
+
+    @Override
+    public Boolean updateTeam(UpdateTeamRequest updateTeamRequest, HttpServletRequest request) {
+        // 1.参数校验：必传参数不能为空
+        if (updateTeamRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        Long id = updateTeamRequest.getId();
+        if (id == null || id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        // 2.鉴权
+        // 查询队伍是否存在
+        Team oldTeam = this.getById(id);
+        if (oldTeam == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR, "请求数据为空");
+        }
+        // 只有管理员或创建者才可修改
+        User loginUser = userService.getLoginUser(request);
+        if (oldTeam.getUserId() != loginUser.getId() && !userService.isAdmin(loginUser)) {
+            throw new  BusinessException(ErrorCode.NO_AUTH, "无权限");
+        }
+        // 3.核心业务逻辑
+        // 如果队伍状态改为加密，则必须要有密码
+        TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(updateTeamRequest.getStatus());
+        if (statusEnum == TeamStatusEnum.PRIVATE) {
+            if (StringUtils.isBlank(updateTeamRequest.getPassword())) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "加密房间必须要设置密码");
+            }
+        }
+        // 修改队伍信息
+        Team newTeam = new Team();
+        BeanUtils.copyProperties(updateTeamRequest, newTeam);
+        return this.updateById(newTeam);
     }
 }
 

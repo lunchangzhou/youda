@@ -7,6 +7,7 @@ import com.lcz.usercenter.exception.BusinessException;
 import com.lcz.usercenter.model.domain.Team;
 import com.lcz.usercenter.model.dto.request.AddTeamRequest;
 import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
+import com.lcz.usercenter.model.dto.request.UpdateTeamRequest;
 import com.lcz.usercenter.model.dto.vo.TeamUserVo;
 import com.lcz.usercenter.service.TeamService;
 import org.springframework.beans.BeanUtils;
@@ -49,5 +50,16 @@ public class TeamController {
         // 2.查询队伍列表
         List<TeamUserVo> teamUserVos = teamService.listTeams(listTeamsRequest, request);
         return ResultUtils.success(teamUserVos);
+    }
+
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateTeam(@RequestBody UpdateTeamRequest updateTeamRequest, HttpServletRequest request) {
+        // 1.参数校验
+        if (updateTeamRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        // 2.修改队伍信息
+        Boolean result = teamService.updateTeam(updateTeamRequest, request);
+        return ResultUtils.success(result);
     }
 }
