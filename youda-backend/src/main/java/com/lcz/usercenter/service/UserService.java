@@ -3,7 +3,7 @@ package com.lcz.usercenter.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lcz.usercenter.model.domain.User;
-import com.lcz.usercenter.model.request.UserUpdateRequest;
+import com.lcz.usercenter.model.dto.request.UserUpdateRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.lcz.usercenter.model.request;
+package com.lcz.usercenter.model.dto.request;
 
 import lombok.Data;
 

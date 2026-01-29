@@ -1,4 +1,4 @@
-package com.lcz.usercenter.model.request;
+package com.lcz.usercenter.model.dto.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -11,11 +11,12 @@ import java.util.Date;
 /**
  * @author 1onetw
  * @version 1.0
- * @Description: 添加队伍请求体
+ * @Description:
  */
 @Data
-public class AddTeamRequest implements Serializable {
-    private static final long serialVersionUID = -4754353720818974844L;
+public class TeamUserVo implements Serializable {
+
+    private static final long serialVersionUID = 5991643391661829642L;
     /**
      * 队伍名称
      */
@@ -42,7 +43,7 @@ public class AddTeamRequest implements Serializable {
     private Integer status;
 
     /**
-     * 密码
+     * 创建人用户信息
      */
-    private String password;
+    private UserVo userVo;
 }

@@ -1,4 +1,4 @@
-package com.lcz.usercenter.model.enums;
+package com.lcz.usercenter.model.dto.enums;
 
 /**
  * @author 1onetw
@@ -12,7 +12,10 @@ public enum TeamStatusEnum {
     private int value;
     private String text;
 
-    public static TeamStatusEnum getEnumByValue(int value){
+    public static TeamStatusEnum getEnumByValue(Integer value){
+        if (value == null){
+            return null;
+        }
         TeamStatusEnum[] values = TeamStatusEnum.values();
         for (TeamStatusEnum teamStatusEnum : values) {
             if (teamStatusEnum.getValue() == value){

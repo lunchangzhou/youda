@@ -1,6 +1,5 @@
 package com.lcz.usercenter.service.impl;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -10,10 +9,15 @@ import com.lcz.usercenter.mapper.TeamMapper;
 import com.lcz.usercenter.model.domain.Team;
 import com.lcz.usercenter.model.domain.User;
 import com.lcz.usercenter.model.domain.UserTeam;
-import com.lcz.usercenter.model.enums.TeamStatusEnum;
+import com.lcz.usercenter.model.dto.enums.TeamStatusEnum;
+import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
+import com.lcz.usercenter.model.dto.vo.TeamUserVo;
+import com.lcz.usercenter.model.dto.vo.UserVo;
 import com.lcz.usercenter.service.TeamService;
+import com.lcz.usercenter.service.UserService;
 import com.lcz.usercenter.service.UserTeamService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +36,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     implements TeamService {
     @Resource
     private UserTeamService userTeamService;
+    @Resource
+    private UserService userService;
+
     @Transactional(rollbackFor = BusinessException.class)
     @Override
     public Long addTeam(Team team, HttpServletRequest request) {
@@ -103,6 +110,71 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "创建队伍失败");
         }
         return teamId;
+    }
+
+    @Override
+    public List<TeamUserVo> listTeams(ListTeamsRequest listTeamsRequest, HttpServletRequest request) {
+        // 1.参数校验
+        // 必传参数不能为空
+        if (listTeamsRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        String searchText = listTeamsRequest.getSearchText();
+        String name = listTeamsRequest.getName();
+        String description = listTeamsRequest.getDescription();
+        Integer maxNum = listTeamsRequest.getMaxNum();
+        Integer status = listTeamsRequest.getStatus();
+        Long userId = listTeamsRequest.getUserId();
+        // 非必传参数是否为空，不为空则作为查询条件
+        QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(searchText)){
+            teamQueryWrapper.and(qw -> qw.like("name", searchText).or().like("description", searchText));
+        }
+        if (StringUtils.isNotBlank(name)){
+            teamQueryWrapper.like("name", name);
+        }
+        if (StringUtils.isNotBlank(description)){
+            teamQueryWrapper.like("description", description);
+        }
+        if (maxNum != null) {
+            teamQueryWrapper.eq("maxNum", maxNum);
+        }
+        TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(status);
+        if (statusEnum == null) {
+            statusEnum = TeamStatusEnum.PUBLIC;
+        }
+        // 2.鉴权：只有管理员才能查看私密队伍
+        if (statusEnum == TeamStatusEnum.PRIVATE && !userService.isAdmin(request)){
+            throw new BusinessException(ErrorCode.NO_AUTH, "无权限");
+        }
+        teamQueryWrapper.eq("status", statusEnum.getValue());
+        if (userId != null) {
+            teamQueryWrapper.eq("userId", userId);
+        }
+        // 3.核心业务逻辑
+        // 不展示已过期的队伍
+        teamQueryWrapper.and(qw -> qw.gt("expireTime", new Date()).or().isNull("expireTime"));
+        // 查询队伍列表
+        ArrayList<TeamUserVo> teamUserVos = new ArrayList<>();
+        List<Team> teams = this.list(teamQueryWrapper);
+        // 关联查询队伍创建者的信息
+        for (Team team : teams) {
+            TeamUserVo teamUserVo = new TeamUserVo();
+            BeanUtils.copyProperties(team, teamUserVo);
+            Long createUserId = team.getUserId();
+            if (createUserId == null) {
+                continue;
+            }
+            User createUser = userService.getById(createUserId);
+            UserVo userVo = new UserVo();
+            if (createUser != null) {
+                // 脱敏用户信息
+                BeanUtils.copyProperties(createUser, userVo);
+                teamUserVo.setUserVo(userVo);
+            }
+            teamUserVos.add(teamUserVo);
+        }
+        return teamUserVos;
     }
 }
 

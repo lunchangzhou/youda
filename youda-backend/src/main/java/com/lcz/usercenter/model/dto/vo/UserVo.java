@@ -1,4 +1,4 @@
-package com.lcz.usercenter.model.request;
+package com.lcz.usercenter.model.dto.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -9,12 +9,13 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author lcz
+ * @author 1onetw
  * @version 1.0
- * 用户更新请求体
+ * @Description:
  */
 @Data
-public class UserUpdateRequest implements Serializable {
+public class UserVo implements Serializable {
+    private static final long serialVersionUID = 3159212217003164350L;
     /**
      * 主键
      */
@@ -24,7 +25,7 @@ public class UserUpdateRequest implements Serializable {
      * 昵称
      */
     private String username;
-    
+
     /**
      * 头像
      */
@@ -46,7 +47,17 @@ public class UserUpdateRequest implements Serializable {
     private String email;
 
     /**
-     * 标签列表 json
+     *  用户状态 0 正常 1 ...
      */
-    private String tags;
+    private Integer userStatus;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
 }
