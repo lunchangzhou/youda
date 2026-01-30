@@ -11,6 +11,7 @@ import com.lcz.usercenter.model.dto.request.UserLoginRequest;
 import com.lcz.usercenter.model.dto.request.UserRegisterRequest;
 import com.lcz.usercenter.model.dto.request.UserSearchByTagsRequest;
 import com.lcz.usercenter.model.dto.request.UserUpdateRequest;
+import com.lcz.usercenter.model.dto.vo.UserVo;
 import com.lcz.usercenter.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -142,6 +143,17 @@ public class UserController {
         }
         // 2.获取推荐用户
         Page<User> result = userService.recommendUsers(pageNum, pageSize, request);
+        return ResultUtils.success(result);
+    }
+
+    @GetMapping("match")
+    public BaseResponse<List<UserVo>> matchUsers(long num, HttpServletRequest request){
+        // 1.参数校验
+        if (num < 1 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "num 要求 1-20");
+        }
+        // 2.获取推荐用户
+        List<UserVo> result = userService.matchUsers(num, request);
         return ResultUtils.success(result);
     }
 

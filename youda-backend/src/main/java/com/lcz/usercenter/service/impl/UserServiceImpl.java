@@ -9,10 +9,13 @@ import com.lcz.usercenter.common.ErrorCode;
 import com.lcz.usercenter.exception.BusinessException;
 import com.lcz.usercenter.model.domain.User;
 import com.lcz.usercenter.model.dto.request.UserUpdateRequest;
+import com.lcz.usercenter.model.dto.vo.UserVo;
 import com.lcz.usercenter.service.UserService;
 import com.lcz.usercenter.mapper.UserMapper;
+import com.lcz.usercenter.utils.AlgorithmUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -23,9 +26,7 @@ import org.springframework.util.StopWatch;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -214,6 +215,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setCreateTime(originUser.getCreateTime());
         safetyUser.setUserRole(originUser.getUserRole());
         safetyUser.setPlanetCode(originUser.getPlanetCode());
+        safetyUser.setTags(originUser.getTags());
         return safetyUser;
     }
 
@@ -360,6 +362,53 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public User getLoginUser(HttpServletRequest request) {
         return (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+    }
+
+    @Override
+    public List<UserVo> matchUsers(long num, HttpServletRequest request) {
+        // 获取当前登录用户的字符列表
+        User loginUser = this.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "未登录");
+        }
+        String tags = loginUser.getTags();
+        Gson gson = new Gson();
+        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+        }.getType());
+        // 查询全部用户, 但过滤掉 tags 为空的用户, 且只查询 id 和 tags, 查询性能可提升 30%
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.isNotNull("tags").select("id", "tags");
+        List<User> userList = this.list(queryWrapper);
+        // 计算每个用户的匹配相似度, Map 中格式（用户列表的下标:相似度）
+        SortedMap<Integer, Long> indexDistanceMap = new TreeMap<>();
+        for (int i = 0; i < userList.size(); i++) {
+            User user = userList.get(i);
+            String userTags = user.getTags();
+            //无标签的
+            if (StringUtils.isBlank(userTags)) {
+                continue;
+            }
+            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
+            }.getType());
+            //计算分数
+            long distance = AlgorithmUtils.minDistance(tagList, userTagList);
+            indexDistanceMap.put(i, distance);
+        }
+        //下面这个是打印前num个的id和分数
+        List<UserVo> userVoList = new ArrayList<>();
+        int i = 0;
+        for (Map.Entry<Integer, Long> entry : indexDistanceMap.entrySet()) {
+            if (i >= num) {
+                break;
+            }
+            User user = userList.get(entry.getKey());
+            UserVo userVo = new UserVo();
+            BeanUtils.copyProperties(user, userVo);
+            System.out.println("用户 id: " + userVo.getId() + "; 用户匹配相似度(越小越相似): " + entry.getValue());
+            userVoList.add(userVo);
+            i++;
+        }
+        return userVoList;
     }
 }
 

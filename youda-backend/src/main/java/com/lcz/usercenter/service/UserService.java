@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lcz.usercenter.model.domain.User;
 import com.lcz.usercenter.model.dto.request.UserUpdateRequest;
+import com.lcz.usercenter.model.dto.vo.UserVo;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -95,4 +96,12 @@ public interface UserService extends IService<User> {
      * @return 当前登录用户
      */
     User getLoginUser(HttpServletRequest request);
+
+    /**
+     * 匹配用户
+     * @param num 个数
+     * @param request 请求对象
+     * @return 匹配的用户列表
+     */
+    List<UserVo> matchUsers(long num, HttpServletRequest request);
 }

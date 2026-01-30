@@ -215,7 +215,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    public Boolean joinTeam(JoinTeamRequest joinTeamRequest, HttpServletRequest request) {
+    public synchronized Boolean joinTeam(JoinTeamRequest joinTeamRequest, HttpServletRequest request) {
         // 1.参数校验
         Long teamId = joinTeamRequest.getId();
         String password = joinTeamRequest.getPassword();
