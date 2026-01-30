@@ -6,6 +6,7 @@ import com.lcz.usercenter.common.ResultUtils;
 import com.lcz.usercenter.exception.BusinessException;
 import com.lcz.usercenter.model.domain.Team;
 import com.lcz.usercenter.model.dto.request.AddTeamRequest;
+import com.lcz.usercenter.model.dto.request.JoinTeamRequest;
 import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
 import com.lcz.usercenter.model.dto.request.UpdateTeamRequest;
 import com.lcz.usercenter.model.dto.vo.TeamUserVo;
@@ -60,6 +61,17 @@ public class TeamController {
         }
         // 2.修改队伍信息
         Boolean result = teamService.updateTeam(updateTeamRequest, request);
+        return ResultUtils.success(result);
+    }
+
+    @PostMapping("/join")
+    public BaseResponse<Boolean> joinTeam(@RequestBody JoinTeamRequest joinTeamRequest, HttpServletRequest request) {
+        // 1.参数校验
+        if (joinTeamRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        // 2.用户加入队伍
+        Boolean result = teamService.joinTeam(joinTeamRequest, request);
         return ResultUtils.success(result);
     }
 }

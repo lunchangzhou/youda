@@ -2,6 +2,7 @@ package com.lcz.usercenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lcz.usercenter.model.domain.Team;
+import com.lcz.usercenter.model.dto.request.JoinTeamRequest;
 import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
 import com.lcz.usercenter.model.dto.request.UpdateTeamRequest;
 import com.lcz.usercenter.model.dto.vo.TeamUserVo;
@@ -30,5 +31,19 @@ public interface TeamService extends IService<Team> {
      */
     List<TeamUserVo> listTeams(ListTeamsRequest listTeamsRequest, HttpServletRequest request);
 
+    /**
+     * 更新队伍信息
+     * @param updateTeamRequest 更新队伍请求体
+     * @param request 请求对象
+     * @return 是否更新成功
+     */
     Boolean updateTeam(UpdateTeamRequest updateTeamRequest, HttpServletRequest request);
+
+    /**
+     * 加入队伍
+     * @param joinTeamRequest 加入队伍请求体
+     * @param request 请求对象
+     * @return 是否加入成功
+     */
+    Boolean joinTeam(JoinTeamRequest joinTeamRequest, HttpServletRequest request);
 }
