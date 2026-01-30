@@ -54,4 +54,12 @@ public interface TeamService extends IService<Team> {
      * @return 退出队伍是否成功
      */
     Boolean quitTeam(Long teamId, HttpServletRequest request);
+
+    /**
+     * 删除（解散）队伍
+     * @param teamId 队伍 id
+     * @param request 请求对象
+     * @return 是否删除成功
+     */
+    Boolean deleteTeam(Long teamId, HttpServletRequest request);
 }

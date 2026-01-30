@@ -328,6 +328,41 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         userTeamQueryWrapper.eq("userId", userId);
         return userTeamService.remove(userTeamQueryWrapper);
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Boolean deleteTeam(Long teamId, HttpServletRequest request) {
+        // 1.参数校验
+        // 必传参数是否为空
+        if (teamId == null || teamId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 2.鉴权: 是否登录
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "未登录");
+        }
+        // 3.核心业务逻辑
+        // 队伍是否存在
+        Team team = this.getById(teamId);
+        if (team == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR, "请求数据为空");
+        }
+        // 你是不是队伍的队长
+        Long userId = loginUser.getId();
+        if (!userId.equals(team.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "无权限");
+        }
+        // 删除所有加入队伍的关联信息
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        userTeamQueryWrapper.eq("teamId", teamId);
+        boolean result = userTeamService.remove(userTeamQueryWrapper);
+        if (!result) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除队伍关联信息失败");
+        }
+        // 删除队伍
+        return this.removeById(teamId);
+    }
 }
 
 
