@@ -46,4 +46,12 @@ public interface TeamService extends IService<Team> {
      * @return 是否加入成功
      */
     Boolean joinTeam(JoinTeamRequest joinTeamRequest, HttpServletRequest request);
+
+    /**
+     * 退出队伍
+     * @param teamId 队伍 id
+     * @param request 请求对象
+     * @return 退出队伍是否成功
+     */
+    Boolean quitTeam(Long teamId, HttpServletRequest request);
 }

@@ -1,10 +1,12 @@
 package com.lcz.usercenter.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lcz.usercenter.common.BaseResponse;
 import com.lcz.usercenter.common.ErrorCode;
 import com.lcz.usercenter.common.ResultUtils;
 import com.lcz.usercenter.exception.BusinessException;
 import com.lcz.usercenter.model.domain.Team;
+import com.lcz.usercenter.model.domain.UserTeam;
 import com.lcz.usercenter.model.dto.request.AddTeamRequest;
 import com.lcz.usercenter.model.dto.request.JoinTeamRequest;
 import com.lcz.usercenter.model.dto.request.ListTeamsRequest;
@@ -72,6 +74,17 @@ public class TeamController {
         }
         // 2.用户加入队伍
         Boolean result = teamService.joinTeam(joinTeamRequest, request);
+        return ResultUtils.success(result);
+    }
+
+    @GetMapping("/quit")
+    public BaseResponse<Boolean> quitTeam(Long teamId, HttpServletRequest request) {
+        // 1.参数校验
+        if (teamId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+        // 2.用户加入队伍
+        Boolean result = teamService.quitTeam(teamId, request);
         return ResultUtils.success(result);
     }
 }
